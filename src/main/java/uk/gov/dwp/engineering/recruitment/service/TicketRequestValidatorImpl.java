@@ -5,6 +5,19 @@ import org.springframework.stereotype.Service;
 import uk.gov.dwp.engineering.recruitment.domain.TicketRequest;
 import uk.gov.dwp.engineering.recruitment.exception.InvalidBookingException;
 
+/**
+ * Two-phase booking-request validation.
+ *
+ * <p>Phase 1 (pre-aggregation) checks the raw inputs — account id, array structure, and
+ * per-element shape — and short-circuits with {@link InvalidBookingException} <em>before</em>
+ * the aggregator is invoked. Phase 2 (post-aggregation) delegates to
+ * {@link TicketRequestAggregator} to compute a {@link TicketTally} and then applies the
+ * business rules: at least one ticket, total within the maximum, and accompanying-adult.
+ *
+ * <p>The aggregator is constructor-injected (DIP) and is documented to assume pre-validated
+ * input — that contract is upheld by running phase 1 first. On success the validated tally
+ * is returned so the orchestrator does not need to re-aggregate.
+ */
 @Service
 public class TicketRequestValidatorImpl implements TicketRequestValidator {
 

@@ -12,6 +12,18 @@ import uk.gov.dwp.engineering.recruitment.service.TicketTally;
 import uk.gov.dwp.engineering.recruitment.thirdparty.PaymentService;
 import uk.gov.dwp.engineering.recruitment.thirdparty.SeatReservationService;
 
+/**
+ * Orchestrates a ticket purchase: validates the request, prices it, takes payment, then reserves
+ * seats. Each step is delegated to a collaborator behind an interface so this class only owns the
+ * sequence and the booking-reference format.
+ *
+ * <p>On success a booking reference of the form
+ * {@code BOOKING-<uuid>|account=<id>|cost=<total>|seats=<count>} is returned. The format is
+ * deliberately parseable and log-friendly; the UUID portion is unique per call.
+ *
+ * <p>On any validation failure an {@link InvalidBookingException} is thrown <em>before</em>
+ * payment or reservation occur — no partial side effects.
+ */
 @Service
 public class CinemaTicketsServiceImpl implements CinemaTicketsService {
 

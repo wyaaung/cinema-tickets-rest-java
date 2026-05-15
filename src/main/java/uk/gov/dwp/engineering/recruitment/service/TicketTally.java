@@ -2,6 +2,13 @@ package uk.gov.dwp.engineering.recruitment.service;
 
 import uk.gov.dwp.engineering.recruitment.domain.TicketType;
 
+/**
+ * Aggregated counts for a single booking, broken down by ticket category.
+ *
+ * <p>This value object is the boundary between request aggregation and the downstream pricing /
+ * seat reservation steps. INFANT tickets contribute to {@link #total()} but are excluded from
+ * {@link #seatCount()} because infants sit on an adult's lap.
+ */
 public record TicketTally(int adults, int children, int infants) {
 
   public TicketTally {
