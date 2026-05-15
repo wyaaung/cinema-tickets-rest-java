@@ -6,8 +6,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class TicketPriceCalculatorImpl implements TicketPriceCalculator {
 
+  private static final BigDecimal ADULT_PRICE = BigDecimal.valueOf(25);
+  private static final BigDecimal CHILD_PRICE = BigDecimal.valueOf(15);
+  private static final BigDecimal INFANT_PRICE = BigDecimal.ZERO;
+
   @Override
   public BigDecimal totalCost(final TicketTally tally) {
-    return new BigDecimal(0L); // Todo: implement this method to calculate the total cost of the booking based on the ticket tally
+    return ADULT_PRICE.multiply(BigDecimal.valueOf(tally.adults()))
+        .add(CHILD_PRICE.multiply(BigDecimal.valueOf(tally.children())))
+        .add(INFANT_PRICE.multiply(BigDecimal.valueOf(tally.infants())));
   }
 }
