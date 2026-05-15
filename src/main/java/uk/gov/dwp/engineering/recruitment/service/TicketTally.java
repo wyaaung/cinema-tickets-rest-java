@@ -3,10 +3,10 @@ package uk.gov.dwp.engineering.recruitment.service;
 public record TicketTally(int adults, int children, int infants) {
 
   public int total() {
-    return 0;
+    return adults + children + infants;
   }
 
   public int seatCount() {
-    return 0;
+    return adults + children;
   }
 }
