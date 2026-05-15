@@ -1,15 +1,5 @@
 package uk.gov.dwp.engineering.recruitment.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
-import static uk.gov.dwp.engineering.recruitment.domain.TicketType.ADULT;
-import static uk.gov.dwp.engineering.recruitment.domain.TicketType.CHILD;
-import static uk.gov.dwp.engineering.recruitment.domain.TicketType.INFANT;
-
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,6 +12,24 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dwp.engineering.recruitment.domain.TicketRequest;
 import uk.gov.dwp.engineering.recruitment.exception.InvalidBookingException;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+import static uk.gov.dwp.engineering.recruitment.domain.TicketType.ADULT;
+import static uk.gov.dwp.engineering.recruitment.domain.TicketType.CHILD;
+import static uk.gov.dwp.engineering.recruitment.domain.TicketType.INFANT;
+import static uk.gov.dwp.engineering.recruitment.service.TicketRequestValidatorImpl.MSG_EXCEEDS_MAX;
+import static uk.gov.dwp.engineering.recruitment.service.TicketRequestValidatorImpl.MSG_INVALID_ACCOUNT_ID;
+import static uk.gov.dwp.engineering.recruitment.service.TicketRequestValidatorImpl.MSG_NEGATIVE_COUNT;
+import static uk.gov.dwp.engineering.recruitment.service.TicketRequestValidatorImpl.MSG_NO_ADULT;
+import static uk.gov.dwp.engineering.recruitment.service.TicketRequestValidatorImpl.MSG_NO_TICKETS;
+import static uk.gov.dwp.engineering.recruitment.service.TicketRequestValidatorImpl.MSG_NULL_ELEMENT;
+import static uk.gov.dwp.engineering.recruitment.service.TicketRequestValidatorImpl.MSG_NULL_TYPE;
+import static uk.gov.dwp.engineering.recruitment.service.TicketRequestValidatorImpl.MSG_REQUESTS_EMPTY;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("TicketRequestValidatorImpl — applies booking rules and returns the aggregated tally")
@@ -58,28 +66,28 @@ class TicketRequestValidatorImplTest {
     return Stream.of(
         Arguments.of("null accountId",
             null, new TicketRequest[]{VALID_ADULT_REQUEST},
-            "accountId must be a positive value"),
+            MSG_INVALID_ACCOUNT_ID),
         Arguments.of("zero accountId",
             0L, new TicketRequest[]{VALID_ADULT_REQUEST},
-            "accountId must be a positive value"),
+            MSG_INVALID_ACCOUNT_ID),
         Arguments.of("negative accountId",
             -1L, new TicketRequest[]{VALID_ADULT_REQUEST},
-            "accountId must be a positive value"),
+            MSG_INVALID_ACCOUNT_ID),
         Arguments.of("null ticketRequests array",
             VALID_ACCOUNT_ID, null,
-            "at least one ticket request is required"),
+            MSG_REQUESTS_EMPTY),
         Arguments.of("empty ticketRequests array",
             VALID_ACCOUNT_ID, new TicketRequest[0],
-            "at least one ticket request is required"),
+            MSG_REQUESTS_EMPTY),
         Arguments.of("array contains null element",
             VALID_ACCOUNT_ID, new TicketRequest[]{VALID_ADULT_REQUEST, null},
-            "ticket requests must not contain null entries"),
+            MSG_NULL_ELEMENT),
         Arguments.of("element with null type",
             VALID_ACCOUNT_ID, new TicketRequest[]{new TicketRequest(null, 1)},
-            "ticket request type must not be null"),
+            MSG_NULL_TYPE),
         Arguments.of("element with negative count",
             VALID_ACCOUNT_ID, new TicketRequest[]{new TicketRequest(ADULT, -1)},
-            "ticket count must not be negative")
+            MSG_NEGATIVE_COUNT)
     );
   }
 
@@ -107,23 +115,23 @@ class TicketRequestValidatorImplTest {
         Arguments.of("aggregate total exceeds max (26)",
             new TicketRequest[]{new TicketRequest(ADULT, 26)},
             new TicketTally(26, 0, 0),
-            String.format("cannot purchase more than %d tickets in a single transaction", 25)),
+            MSG_EXCEEDS_MAX),
         Arguments.of("aggregate total is zero",
             new TicketRequest[]{new TicketRequest(ADULT, 0)},
             new TicketTally(0, 0, 0),
-            "at least one ticket must be purchased"),
+            MSG_NO_TICKETS),
         Arguments.of("child only, no adult",
             new TicketRequest[]{new TicketRequest(CHILD, 1)},
             new TicketTally(0, 1, 0),
-            "child and infant tickets require at least one accompanying adult"),
+            MSG_NO_ADULT),
         Arguments.of("infant only, no adult",
             new TicketRequest[]{new TicketRequest(INFANT, 1)},
             new TicketTally(0, 0, 1),
-            "child and infant tickets require at least one accompanying adult"),
+            MSG_NO_ADULT),
         Arguments.of("child and infant, no adult",
             new TicketRequest[]{new TicketRequest(CHILD, 1), new TicketRequest(INFANT, 1)},
             new TicketTally(0, 1, 1),
-            "child and infant tickets require at least one accompanying adult")
+            MSG_NO_ADULT)
     );
   }
 
